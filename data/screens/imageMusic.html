@@ -90,16 +90,6 @@
       .opening-logo span {
         color: #9dc3e7;
       }
-      .opening-hint {
-        position: absolute;
-        bottom: 2.5rem;
-        font-family: "AGENCYR", Arial Narrow, Arial, sans-serif;
-        font-weight: 400;
-        font-size: clamp(0.75rem, 1.5vw, 1rem);
-        color: rgba(255, 255, 255, 0.35);
-        letter-spacing: 0.1em;
-        animation: pulse 2.5s ease-in-out infinite;
-      }
       @keyframes pulse {
         0%,
         100% {
@@ -413,40 +403,6 @@
         z-index: 40;
         cursor: pointer;
       }
-
-      /* ── END SCREEN ── */
-      #end-screen {
-        position: fixed;
-        inset: 0;
-        background: #000;
-        z-index: 80;
-        display: none;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        transition: opacity 2s ease;
-        cursor: pointer;
-      }
-      #end-screen.visible {
-        opacity: 1;
-      }
-      .end-text {
-        font-family: "AGENCYB", Arial Narrow, Arial, sans-serif;
-        font-weight: 400;
-        font-size: clamp(2rem, 6vw, 4.5rem);
-        color: #ffc000;
-        text-align: center;
-        letter-spacing: 0.08em;
-      }
-      .end-sub {
-        font-family: "AGENCYR", Arial Narrow, Arial, sans-serif;
-        font-weight: 400;
-        font-size: clamp(1rem, 2.5vw, 1.6rem);
-        color: rgba(255, 255, 255, 0.5);
-        margin-top: 1em;
-        letter-spacing: 0.1em;
-      }
     </style>
   </head>
   <body>
@@ -455,7 +411,6 @@
       <div class="opening-main">for kropp og sjel</div>
       <div class="opening-showname" id="show-name">Laster...</div>
       <div class="opening-logo"><span>B</span>estefar.no</div>
-      <div class="opening-hint">▶ Trykk høyre pil for å starte</div>
     </div>
 
     <div id="show"><div id="slides-container"></div></div>
@@ -478,11 +433,6 @@
     <div id="drawer-backdrop"></div>
     <div id="drawer"></div>
 
-    <div id="end-screen">
-      <div class="end-text">Takk for at du så på!</div>
-      <div class="end-sub" id="end-showname"></div>
-    </div>
-
     <!-- The audio element — we drive it entirely from JS -->
     <audio id="shared-audio" loop></audio>
 
@@ -500,7 +450,6 @@
       const showEl = document.getElementById("show");
       const slidesWrap = document.getElementById("slides-container");
       const pageBadge = document.getElementById("page-badge");
-      const endScreen = document.getElementById("end-screen");
 
       const isVideo = (url) => url && /\.(mp4|webm|ogg|mov)/i.test(url);
 
@@ -676,17 +625,10 @@
         // Auto advance
         const secs = parseInt(slide.displaySeconds) || 8;
         autoTimer = setTimeout(() => {
-          if (currentIndex < slides.length - 1) goToSlide(currentIndex + 1);
-          else showEnd();
+          if (currentIndex < slides.length - 1) {
+            goToSlide(currentIndex + 1);
+          }
         }, secs * 1000);
-      }
-
-      // ── End screen ────────────────────────────────────────────────────────
-      function showEnd() {
-        clearTimeout(autoTimer);
-        endScreen.style.display = "flex";
-        requestAnimationFrame(() => endScreen.classList.add("visible"));
-        sharedAudio.pause();
       }
 
       // ── Notes ─────────────────────────────────────────────────────────────
@@ -743,8 +685,9 @@
           startShow();
           return;
         }
-        if (currentIndex < slides.length - 1) goToSlide(currentIndex + 1);
-        else showEnd();
+        if (currentIndex < slides.length - 1) {
+          goToSlide(currentIndex + 1);
+        }
       });
 
       document.getElementById("nav-notes").addEventListener("click", (e) => {
@@ -764,16 +707,6 @@
       document
         .getElementById("drawer-backdrop")
         .addEventListener("click", closeDrawer);
-
-      endScreen.addEventListener("click", () => {
-        endScreen.classList.remove("visible");
-        setTimeout(() => {
-          endScreen.style.display = "none";
-          goToSlide(0);
-          // goToSlide already calls handleAudio, but ensure it plays
-          sharedAudio.play().catch(() => {});
-        }, 800);
-      });
 
       // ── Keyboard ──────────────────────────────────────────────────────────
       document.addEventListener("keydown", (e) => {
@@ -914,7 +847,6 @@
         }));
 
         document.getElementById("show-name").textContent = showName;
-        document.getElementById("end-showname").textContent = showName;
         document.title = showName;
 
         buildSlides(slides);
